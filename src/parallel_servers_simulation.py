@@ -15,6 +15,10 @@ class ParallelServersSimulation:
     total_time : float
         Time horizon (T). After T no new arrivals are generated, but the system
         continues serving until it empties.
+    arrival_generator : function
+        Function that generates inter-arrival times (time between consecutive arrivals).
+    service_time_generator : function
+        Function that generates service times.
     """
 
     def __init__(self, server_num, total_time, arrival_generator, service_time_generator):
@@ -38,7 +42,7 @@ class ParallelServersSimulation:
         # Counters
         self.arrival_count = 0 
         self.departure_counts = [0] * self.server_num 
-        self.arrival_times = [] 
+        self.arrival_times = [] # arrival times[i] -> arrival time of customer i + 1
         self.departure_times =  [{} for _ in range(self.server_num)]  # per server: {customer_id: departure_time}
         self.idle_times = [0] * self.server_num  # total idle time per server
         self.last_idle_start = [0] * self.server_num   # time of last idle start for each server
@@ -49,15 +53,7 @@ class ParallelServersSimulation:
         self.server_customers = [0] * self.server_num # server_customers[i] -> 0 = idle, otherwise customer i being served
         
     def run(self):
-        """Run the simulation until the system is empty after time T.
-
-        Returns
-        -------
-        arrival_times : list of float
-        departure_times : list of dict  (one dict per server)
-        arrival_count : int
-        departure_counts : list of int
-        """
+        """Run the simulation until the system is empty after time T."""
 
         while True:
             # Termination condition: system empty and no future arrivals within horizon
@@ -81,8 +77,6 @@ class ParallelServersSimulation:
         # Update idle times for servers that are idle at the end of the simulation
         for i in range(self.server_num):
             self.idle_times[i] += self.T - self.last_idle_start[i]
-
-        print(f"Simulation ended at time {self.t:.2f} with {self.arrival_count} arrivals")
 
         return self.arrival_times, self.departure_times, self.idle_times
 
